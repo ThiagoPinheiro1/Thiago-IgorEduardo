@@ -1,0 +1,55 @@
+import javax.swing.*;
+import java.awt.event.*;
+import java.io.*;
+import java.net.*;
+
+public class CardapioClient {
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Cadastro de Cliente");
+        JTextField nomeField = new JTextField(20);
+        JTextField telefoneField = new JTextField(20);
+        JTextField enderecoField = new JTextField(20);
+        JButton cadastrarButton = new JButton("Cadastrar Cliente");
+        JTextArea responseArea = new JTextArea(20, 50);
+
+        JPanel panel = new JPanel();
+        panel.add(new JLabel("Nome:"));
+        panel.add(nomeField);
+        panel.add(new JLabel("Telefone:"));
+        panel.add(telefoneField);
+        panel.add(new JLabel("Endereço:"));
+        panel.add(enderecoField);
+        panel.add(cadastrarButton);
+
+        frame.getContentPane().add(panel, "Center");
+        frame.getContentPane().add(new JScrollPane(responseArea), "South");
+
+        cadastrarButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try (Socket socket = new Socket("localhost", 12345);
+                     PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+                    
+                    String nome = nomeField.getText();
+                    String telefone = telefoneField.getText();
+                    String endereco = enderecoField.getText();
+
+                    out.println("CadastrarCliente");
+                    out.println(nome);
+                    out.println(telefone);
+                    out.println(endereco);
+
+                    String response = in.readLine();
+                    responseArea.setText(response);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        frame.pack();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+    }
+}
