@@ -1,0 +1,51 @@
+import java.io.*;
+import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CardapioServer {
+
+    private static List<String> clientes = new ArrayList<>();
+
+    public static void main(String[] args) {
+        try (ServerSocket serverSocket = new ServerSocket(12345)) {
+            System.out.println("Servidor iniciado na porta 12345");
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                new ClientHandler(clientSocket).start();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static class ClientHandler extends Thread {
+        private Socket clientSocket;
+
+        public ClientHandler(Socket socket) {
+            this.clientSocket = socket;
+        }
+
+        public void run() {
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+                
+                String requestType = in.readLine();
+
+                if ("CadastrarCliente".equals(requestType)) {
+                    String nome = in.readLine();
+                    String telefone = in.readLine();
+                    String endereco = in.readLine();
+                    String cliente = "Nome: " + nome + ", Telefone: " + telefone + ", Endereço: " + endereco;
+                    clientes.add(cliente);
+                    out.println("Cliente cadastrado com sucesso!");
+                } else {
+                    out.println("Comando não reconhecido.");
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
